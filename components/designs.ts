@@ -21,6 +21,12 @@ export type Design = {
   /** Must match the AccessoryArt padding in the Swift design. */
   padding: number;
   description: string;
+  /**
+   * Extra terms the search should match. The name and description alone are
+   * a thin target -- someone looking for the sparkle is as likely to type
+   * "star" or "glitter".
+   */
+  keywords: string[];
 };
 
 export const DESIGNS: Design[] = [
@@ -31,6 +37,7 @@ export const DESIGNS: Design[] = [
     family: "circular",
     padding: 4,
     description: "A cat looking back at you.",
+    keywords: ["kitten", "kitty", "animal", "pet", "face", "whiskers", "feline"],
   },
   {
     name: "Sparkle",
@@ -39,6 +46,7 @@ export const DESIGNS: Design[] = [
     family: "circular",
     padding: 10,
     description: "A four-point sparkle.",
+    keywords: ["star", "shine", "glitter", "twinkle", "magic", "ai"],
   },
 ];
 

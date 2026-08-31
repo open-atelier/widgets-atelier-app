@@ -286,6 +286,10 @@ rows.
 Nothing enforces that the two stay in step. If the gallery is missing a design,
 this is why.
 
+Give each entry a few `keywords` while you are there. The gallery search is
+fuzzy (Fuse.js), and name plus description alone is a thin target — someone
+hunting for the sparkle is as likely to type "star" or "glitter".
+
 ## One SVG, both families
 
 A single SVG can back two widgets, with different padding, but each needs its
