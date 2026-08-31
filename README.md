@@ -29,12 +29,22 @@ target by [`@bacons/apple-targets`](https://github.com/EvanBacon/expo-apple-targ
 The Expo app is a thin host: the extension has to be embedded in an app, and it
 gives somewhere to grow later. It does no work at runtime.
 
-`expo-widgets` and `@expo/ui/swift-ui` are deliberately not installed.
+`expo-widgets` is deliberately not installed — that is the App Group problem
+above, and it applies to the widgets only.
+
+`@expo/ui` *is* used, for the host app. It has no entitlement requirements, so
+none of that reasoning applies to it. The app is iOS-only and built from real
+SwiftUI: native tabs, grouped `Form` sections, native pickers and SF Symbols
+via `expo-symbols`.
 
 ## Layout
 
 ```
-app/                           expo-router host app, one screen
+app/                           expo-router host app
+  _layout.tsx                  native tabs
+  (gallery)/                   every illustration, both variants
+  (settings)/                  theme, instructions, licences
+components/                    theme provider, design table, gallery row
 artwork/                       source of truth: original SVGs
 tools/svg-to-pdf.sh            artwork/*.svg -> the widget's asset catalog
 targets/widgets/

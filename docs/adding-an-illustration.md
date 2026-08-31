@@ -277,7 +277,7 @@ the source SVG; there is no rendering flag that recovers it.
 
 ## Keeping the app gallery in step
 
-`components/widget-gallery.tsx` holds its own small table of designs, because
+`components/designs.ts` holds its own small table of designs, because
 the host app renders the source PNGs rather than the real widgets (it cannot —
 see the file's own comment). It shows **one row per artwork**, not per widget,
 so adding a design means adding one entry there even though it adds two picker

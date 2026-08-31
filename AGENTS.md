@@ -146,9 +146,9 @@ a decision to make on their behalf. This applies to both families: small
 Register **both** in `WidgetsAtelierBundle.swift` — an unregistered widget
 compiles cleanly and simply never appears in the picker.
 
-Then add **one** row to the table in `components/widget-gallery.tsx`. That
-table is one row per artwork, not per widget; showing both variants would just
-be the same illustration twice.
+Then add **one** entry to `DESIGNS` in `components/designs.ts`. That table is
+one row per artwork, not per widget — the gallery shows both variants side by
+side from a single entry, so adding it twice would duplicate the row.
 
 ## Never rename a shipped kind
 

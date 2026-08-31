@@ -22,7 +22,8 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
-      ]
+      ],
+      "react-native-legal"
     ],
     "experiments": {
       "typedRoutes": true
