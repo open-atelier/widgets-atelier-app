@@ -48,23 +48,6 @@ export default function Instructions() {
             </Text>
           </FieldGroup.SectionFooter>
         </FieldGroup.Section>
-
-        <FieldGroup.Section>
-          <FieldGroup.SectionHeader>
-            <Text>This build expires in 7 days</Text>
-          </FieldGroup.SectionHeader>
-          <ListItem leading={<Icon name="clock.badge.exclamationmark" size={22} />}>
-            Signed with a free Apple ID
-          </ListItem>
-          <FieldGroup.SectionFooter>
-            <Text>
-              The certificate lasts a week. When the app stops opening and the
-              widgets go blank, re-install it with AltStore or Sideloadly.
-              AltStore can refresh it automatically over Wi-Fi if its companion
-              app is running.
-            </Text>
-          </FieldGroup.SectionFooter>
-        </FieldGroup.Section>
       </FieldGroup>
     </Host>
   );
