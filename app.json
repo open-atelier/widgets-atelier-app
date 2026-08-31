@@ -1,0 +1,31 @@
+{
+  "expo": {
+    "name": "Widgets Atelier",
+    "slug": "widgets-atelier",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "widgetsatelier",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "bundleIdentifier": "openatelier.widgets",
+      "supportsTablet": false,
+      "deploymentTarget": "17.0"
+    },
+    "plugins": [
+      "expo-router",
+      "@bacons/apple-targets",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#101014",
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 76
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
