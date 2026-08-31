@@ -1,0 +1,310 @@
+name: Build Unsigned iOS IPA (dev client)
+
+on:
+  workflow_dispatch:
+    inputs:
+      commit_sha:
+        description: Commit SHA, branch, or tag to build (defaults to latest main)
+        required: false
+        type: string
+      release_tag:
+        description: Release tag (defaults to build-<short sha>_ios-dev)
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build unsigned dev client IPA
+    runs-on: macos-26
+    timeout-minutes: 60
+    env:
+      CI: 1
+      DEVELOPER_DIR: /Applications/Xcode_26.5.app/Contents/Developer
+      EXPO_NO_TELEMETRY: 1
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ inputs.commit_sha || 'main' }}
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7.0.0
+        with:
+          node-version: 24
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+
+      - name: Verify Xcode toolchain
+        run: |
+          xcodebuild -version
+          swift --version
+
+      - name: Set build variables
+        id: vars
+        env:
+          RELEASE_TAG_INPUT: ${{ inputs.release_tag }}
+        run: |
+          FULL_SHA="$(git rev-parse HEAD)"
+          SHORT_SHA="$(git rev-parse --short HEAD)"
+          BUILD_NAME="build-${SHORT_SHA}_ios-dev"
+          TAG="$RELEASE_TAG_INPUT"
+
+          if [ -z "$TAG" ]; then
+            TAG="$BUILD_NAME"
+          fi
+
+          if ! git check-ref-format "refs/tags/$TAG"; then
+            echo "::error::Invalid release tag: $TAG"
+            exit 1
+          fi
+
+          EXISTING_SHA="$(git rev-list -n 1 "$TAG" 2>/dev/null || true)"
+          if [ -n "$EXISTING_SHA" ] && [ "$EXISTING_SHA" != "$FULL_SHA" ]; then
+            echo "::error::Tag $TAG already points to $EXISTING_SHA"
+            exit 1
+          fi
+
+          echo "full_sha=$FULL_SHA" >> "$GITHUB_OUTPUT"
+          echo "short_sha=$SHORT_SHA" >> "$GITHUB_OUTPUT"
+          echo "build_name=$BUILD_NAME" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Install JavaScript dependencies
+        run: bun install --frozen-lockfile
+
+      # The generated PDFs are committed, so this only matters when the artwork
+      # and the asset catalog have drifted apart. It has to run before prebuild,
+      # which is when apple-targets links the catalog into the Xcode project.
+      - name: Convert the artwork to PDF
+        run: |
+          brew install librsvg
+          bash tools/svg-to-pdf.sh
+
+          if ! git diff --quiet -- targets/widgets/Assets.xcassets; then
+            echo "::warning::The committed PDFs were stale and have been regenerated. Run tools/svg-to-pdf.sh locally and commit the result."
+            git diff --stat -- targets/widgets/Assets.xcassets
+          fi
+
+      - name: Verify expo-dev-client is installed
+        run: bun pm ls | grep expo-dev-client
+
+      - name: Namespace the bundle identifier for the dev client
+        id: identifier
+        run: |
+          bun -e '
+            const fs = require("fs");
+            const config = JSON.parse(fs.readFileSync("app.json", "utf8"));
+            const ios = config.expo.ios;
+
+            // "gh." tags it as a GitHub Actions build; "dev." as a dev client --
+            // both stack so it installs alongside builds from any other source.
+            if (!ios.bundleIdentifier.startsWith("gh.dev.")) {
+              ios.bundleIdentifier = "gh.dev." + ios.bundleIdentifier;
+            }
+
+            fs.writeFileSync("app.json", JSON.stringify(config, null, 2) + "\n");
+            fs.appendFileSync(
+              process.env.GITHUB_OUTPUT,
+              "bundle_identifier=" + ios.bundleIdentifier + "\n",
+            );
+            console.log("bundleIdentifier: " + ios.bundleIdentifier);
+          '
+
+      - name: Generate the iOS project
+        run: bunx expo prebuild --platform ios --clean --no-install
+
+      - name: Install CocoaPods
+        working-directory: ios
+        run: pod install
+
+      # An app extension's bundle id must be a prefixed child of its host app's.
+      # targets/widgets/expo-target.config.js uses the plugin's leading-dot form
+      # so the pair tracks the namespacing above. Hardcoding it desynchronises
+      # the two, and the widget then silently never appears in the picker
+      # instead of failing the build.
+      - name: Verify the extension bundle identifier
+        env:
+          APP_IDENTIFIER: ${{ steps.identifier.outputs.bundle_identifier }}
+        run: |
+          OTHER_IDENTIFIERS="$(grep -o 'PRODUCT_BUNDLE_IDENTIFIER = [^;]*;' ios/*.xcodeproj/project.pbxproj \
+            | sed 's/PRODUCT_BUNDLE_IDENTIFIER = //; s/;$//' \
+            | sort -u \
+            | grep -v "^$APP_IDENTIFIER$" || true)"
+
+          echo "app:       $APP_IDENTIFIER"
+          echo "extension: ${OTHER_IDENTIFIERS:-<none>}"
+
+          if [ "$OTHER_IDENTIFIERS" != "$APP_IDENTIFIER.widgets" ]; then
+            echo "::error::Expected exactly one extension identifier '$APP_IDENTIFIER.widgets', found '${OTHER_IDENTIFIERS:-<none>}'"
+            exit 1
+          fi
+
+      # A free personal team cannot provision App Groups, push, or associated
+      # domains. A stray entitlement is the likeliest cause of a failed
+      # sideload, and it surfaces on the device rather than here.
+      - name: Verify the entitlements are sideloadable
+        run: |
+          UNPROVISIONABLE='com.apple.security.application-groups|aps-environment|com.apple.developer.associated-domains|com.apple.developer.healthkit|com.apple.developer.icloud|com.apple.developer.networking|com.apple.developer.siri|com.apple.developer.usernotifications'
+          STATUS=0
+
+          while IFS= read -r FILE; do
+            echo "--- $FILE"
+            plutil -p "$FILE"
+
+            if plutil -p "$FILE" | grep -Eq "$UNPROVISIONABLE"; then
+              echo "::error file=$FILE::Requests an entitlement a free personal team cannot provision"
+              STATUS=1
+            fi
+          done < <(find ios -name '*.entitlements')
+
+          exit "$STATUS"
+
+      - name: Resolve Xcode project
+        id: xcode
+        run: |
+          shopt -s nullglob
+          WORKSPACES=(ios/*.xcworkspace)
+
+          if [ "${#WORKSPACES[@]}" -ne 1 ]; then
+            echo "::error::Expected one generated Xcode workspace, found ${#WORKSPACES[@]}"
+            exit 1
+          fi
+
+          WORKSPACE="${WORKSPACES[0]}"
+          SCHEME="$(basename "$WORKSPACE" .xcworkspace)"
+          ARCHIVE_PATH="$RUNNER_TEMP/$SCHEME.xcarchive"
+
+          echo "workspace=$WORKSPACE" >> "$GITHUB_OUTPUT"
+          echo "scheme=$SCHEME" >> "$GITHUB_OUTPUT"
+          echo "archive_path=$ARCHIVE_PATH" >> "$GITHUB_OUTPUT"
+
+      - name: Resolve package dependencies
+        env:
+          WORKSPACE: ${{ steps.xcode.outputs.workspace }}
+          SCHEME: ${{ steps.xcode.outputs.scheme }}
+        run: |
+          xcodebuild -resolvePackageDependencies \
+            -workspace "$WORKSPACE" \
+            -scheme "$SCHEME"
+
+      - name: Archive unsigned dev client app
+        env:
+          WORKSPACE: ${{ steps.xcode.outputs.workspace }}
+          SCHEME: ${{ steps.xcode.outputs.scheme }}
+          ARCHIVE_PATH: ${{ steps.xcode.outputs.archive_path }}
+        run: |
+          xcodebuild archive \
+            -workspace "$WORKSPACE" \
+            -scheme "$SCHEME" \
+            -configuration Debug \
+            -destination "generic/platform=iOS" \
+            -archivePath "$ARCHIVE_PATH" \
+            -derivedDataPath "$RUNNER_TEMP/DerivedData" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            DEVELOPMENT_TEAM=""
+
+      - name: Package IPA
+        id: package
+        env:
+          ARCHIVE_PATH: ${{ steps.xcode.outputs.archive_path }}
+          BUILD_NAME: ${{ steps.vars.outputs.build_name }}
+        run: |
+          shopt -s nullglob
+          APPS=("$ARCHIVE_PATH/Products/Applications/"*.app)
+
+          if [ "${#APPS[@]}" -ne 1 ]; then
+            echo "::error::Expected one archived app, found ${#APPS[@]}"
+            exit 1
+          fi
+
+          APP="${APPS[0]}"
+
+          if codesign -d "$APP" >/dev/null 2>&1; then
+            echo "::error::The archived app is signed; expected an unsigned build"
+            exit 1
+          fi
+
+          # A widget-less IPA installs perfectly and fails silently -- the app
+          # opens, the picker is just empty. CODE_SIGNING_ALLOWED=NO is a less
+          # well-trodden path than the signed one, so confirm the extension
+          # actually survived into the archive before publishing it.
+          APP_IDENTIFIER="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP/Info.plist")"
+          EXTENSIONS=("$APP/PlugIns/"*.appex)
+
+          if [ "${#EXTENSIONS[@]}" -ne 1 ]; then
+            echo "::error::Expected one embedded app extension, found ${#EXTENSIONS[@]}"
+            ls -la "$APP/PlugIns" 2>/dev/null || echo "No PlugIns directory"
+            exit 1
+          fi
+
+          EXTENSION="${EXTENSIONS[0]}"
+          EXTENSION_IDENTIFIER="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$EXTENSION/Info.plist")"
+          EXTENSION_POINT="$(/usr/libexec/PlistBuddy -c 'Print :NSExtension:NSExtensionPointIdentifier' "$EXTENSION/Info.plist")"
+
+          echo "app:       $APP_IDENTIFIER"
+          echo "extension: $EXTENSION_IDENTIFIER ($EXTENSION_POINT)"
+
+          case "$EXTENSION_IDENTIFIER" in
+            "$APP_IDENTIFIER".*) ;;
+            *)
+              echo "::error::Extension identifier '$EXTENSION_IDENTIFIER' is not a child of app identifier '$APP_IDENTIFIER'"
+              exit 1
+              ;;
+          esac
+
+          if [ "$EXTENSION_POINT" != "com.apple.widgetkit-extension" ]; then
+            echo "::error::Embedded extension is not a WidgetKit extension"
+            exit 1
+          fi
+
+          PACKAGE_ROOT="$RUNNER_TEMP/ipa-$BUILD_NAME"
+          PAYLOAD_DIR="$PACKAGE_ROOT/Payload"
+          APP_NAME="$(basename "$APP")"
+          IPA_NAME="$BUILD_NAME.ipa"
+          IPA_PATH="$RUNNER_TEMP/$IPA_NAME"
+
+          mkdir -p "$PAYLOAD_DIR"
+          ditto "$APP" "$PAYLOAD_DIR/$APP_NAME"
+          ditto -c -k --sequesterRsrc --keepParent "$PAYLOAD_DIR" "$IPA_PATH"
+
+          echo "ipa_path=$IPA_PATH" >> "$GITHUB_OUTPUT"
+          echo "ipa_name=$IPA_NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Create release
+        uses: softprops/action-gh-release@v3.0.2
+        with:
+          tag_name: ${{ steps.vars.outputs.tag }}
+          name: ${{ steps.vars.outputs.tag }}
+          target_commitish: ${{ steps.vars.outputs.full_sha }}
+          prerelease: true
+          fail_on_unmatched_files: true
+          body: |
+            Unsigned iOS **development client** build of commit `${{ steps.vars.outputs.full_sha }}`.
+
+            This is a Debug build that includes `expo-dev-client`. It does not
+            embed a JS bundle -- on launch it opens the dev client launcher so
+            you can connect to a development server (`bunx expo start`).
+
+            The widgets are native and are compiled into this build. The dev
+            client reloads the host app's JavaScript only; changing a design
+            under `targets/` still needs a full rebuild.
+
+            Bundle identifier: `${{ steps.identifier.outputs.bundle_identifier }}`,
+            so it installs alongside the production app instead of replacing it.
+
+            This IPA is **not code signed**. Re-sign it with your own
+            certificate and provisioning profile before installing it.
+          files: ${{ steps.package.outputs.ipa_path }}
