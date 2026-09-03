@@ -6,11 +6,11 @@ struct MyMelodyOutlineCircular: Widget {
 
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: StaticProvider()) { _ in
-            // padding 7 rather than 10 like the filled variant: the line work
-            // is thin and needs the extra frame. 8 would match the house
-            // style, but the furthest drawn point already sits 34.3pt from
-            // the slot centre here -- 6 would clip past the 36pt radius.
-            AccessoryArt(imageName: "my-melody-outline", padding: 7)
+            // padding 11: the source line work is stroked 0.8 units thicker
+            // so it matches cat-outline's weight (median run 4.4pt, 3% under
+            // the 3pt vibrancy threshold), which also pushes the furthest
+            // drawn point out -- 30.4pt from the slot centre at this size.
+            AccessoryArt(imageName: "my-melody-outline", padding: 11)
         }
         .configurationDisplayName("My Melody outline")
         .description("My Melody, line art.")
@@ -24,7 +24,7 @@ struct MyMelodyOutlineCircularPlate: Widget {
 
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: StaticProvider()) { _ in
-            AccessoryArt(imageName: "my-melody-outline", padding: 7, showsBackground: true)
+            AccessoryArt(imageName: "my-melody-outline", padding: 11, showsBackground: true)
         }
         .configurationDisplayName("My Melody outline, plate")
         .description("My Melody, line art, on a backing plate.")

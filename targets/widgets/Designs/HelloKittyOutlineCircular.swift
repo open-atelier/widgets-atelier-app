@@ -6,11 +6,11 @@ struct HelloKittyOutlineCircular: Widget {
 
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: StaticProvider()) { _ in
-            // padding 2 rather than the usual 8: the line work is thin
-            // (median run barely 3pt at this size) and needs every point of
-            // frame it can get. Furthest drawn point is 33.2pt from the slot
-            // centre, still inside the 36pt radius.
-            AccessoryArt(imageName: "hello-kitty-outline", padding: 2)
+            // padding 6: the source line work is stroked 1.2 units thicker so
+            // it matches cat-outline's weight (median run 4.3pt, 6% under the
+            // 3pt vibrancy threshold). Furthest drawn point is 30.0pt from
+            // the slot centre, inside the 36pt radius.
+            AccessoryArt(imageName: "hello-kitty-outline", padding: 6)
         }
         .configurationDisplayName("Hello Kitty outline")
         .description("Hello Kitty, line art.")
@@ -24,7 +24,7 @@ struct HelloKittyOutlineCircularPlate: Widget {
 
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: StaticProvider()) { _ in
-            AccessoryArt(imageName: "hello-kitty-outline", padding: 2, showsBackground: true)
+            AccessoryArt(imageName: "hello-kitty-outline", padding: 6, showsBackground: true)
         }
         .configurationDisplayName("Hello Kitty outline, plate")
         .description("Hello Kitty, line art, on a backing plate.")
