@@ -6,9 +6,9 @@ struct SparkleCircular: Widget {
 
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: StaticProvider()) { _ in
-            AccessoryArt(imageName: "sparkle", padding: 10)
+            AccessoryArt(imageName: "sparkles-sharp-filled", padding: 10)
         }
-        .configurationDisplayName("Sparkle")
+        .configurationDisplayName("Sparkles sharp")
         .description("A four-point sparkle.")
         .supportedFamilies([.accessoryCircular])
         .contentMarginsDisabled()
@@ -20,9 +20,9 @@ struct SparkleCircularPlate: Widget {
 
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: StaticProvider()) { _ in
-            AccessoryArt(imageName: "sparkle", padding: 10, showsBackground: true)
+            AccessoryArt(imageName: "sparkles-sharp-filled", padding: 10, showsBackground: true)
         }
-        .configurationDisplayName("Sparkle, plate")
+        .configurationDisplayName("Sparkles sharp, plate")
         .description("A four-point sparkle, on a backing plate.")
         .supportedFamilies([.accessoryCircular])
         .contentMarginsDisabled()

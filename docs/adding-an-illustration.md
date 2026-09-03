@@ -147,7 +147,7 @@ With `padding: 8` the art gets 56pt, and if the SVG already has its own margin
 you are comfortably inside the safe area.
 
 Better than reasoning about it: render the SVG at the frame size and measure the
-furthest opaque pixel from the slot centre. `cat.svg` reaches only 30.4pt at
+furthest opaque pixel from the slot centre. `cat-outline.svg` reaches only 30.4pt at
 `padding: 4`, against a 36pt radius — which is why it can afford to render
 larger than the others. A bounding-box check would have wrongly said it clips.
 
@@ -219,14 +219,14 @@ So an SVG should be:
 - **Flattened to filled paths**, *or* stroked thickly enough to survive.
 
 On that last point: the flattening rule exists to catch hairlines, not to ban
-stroking. `cat.svg` is stroke-style line art flattened to filled paths: at
+stroking. `cat-outline.svg` is stroke-style line art flattened to filled paths: at
 `padding: 4` its median feature is 6pt and only 6% of runs fall under 3pt, which
 reads fine. Rough test — `stroke_width / viewBox_width × 56` should be 3pt or
 more.
 
 If you do flatten, watch subpath winding. Overlapping subpaths cancel into
 holes under `fill-rule="evenodd"`, and under the default `nonzero` they only
-union if wound the same direction. `artwork/cat.svg` relies on `evenodd` for its
+union if wound the same direction. `artwork/cat-outline.svg` relies on `evenodd` for its
 outline, with the eyes and nose as separate elements so their winding cannot
 interact with it.
 

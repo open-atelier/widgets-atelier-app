@@ -14,9 +14,9 @@ struct CatCircular: Widget {
             // well inside the 36pt radius, so nothing clips. Rendering it
             // larger buys legibility this line art needs -- the thinnest
             // strokes are only a few points across.
-            AccessoryArt(imageName: "cat", padding: 4)
+            AccessoryArt(imageName: "cat-outline", padding: 4)
         }
-        .configurationDisplayName("Cat")
+        .configurationDisplayName("Cat outline")
         .description("A cat looking back at you.")
         .supportedFamilies([.accessoryCircular])
         .contentMarginsDisabled()
@@ -28,9 +28,9 @@ struct CatCircularPlate: Widget {
 
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: StaticProvider()) { _ in
-            AccessoryArt(imageName: "cat", padding: 4, showsBackground: true)
+            AccessoryArt(imageName: "cat-outline", padding: 4, showsBackground: true)
         }
-        .configurationDisplayName("Cat, plate")
+        .configurationDisplayName("Cat outline, plate")
         .description("A cat looking back at you, on a backing plate.")
         .supportedFamilies([.accessoryCircular])
         .contentMarginsDisabled()

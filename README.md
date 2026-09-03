@@ -91,10 +91,10 @@ tap the widget area → Widgets Atelier**.
 
 ## Artwork
 
-**The `cat-*` and `sparkle` SVGs are placeholders.** They are correct in form —
+**The `cat-outline` and `sparkles-sharp-filled` SVGs are placeholders.** They are correct in form —
 flat filled paths, monochrome, tight viewBox — so the pipeline is proven end to
 end, but they are not the intended art. Replace them and re-run `bun run
-artwork`. `cat.svg` is real artwork (SVG Repo).
+artwork`. `cat-outline.svg` is real artwork (SVG Repo).
 
 WidgetKit cannot render SVG, so `tools/svg-to-pdf.sh` converts each file to a
 vector PDF and writes it into `targets/widgets/Assets.xcassets/<name>.imageset/`
@@ -127,7 +127,7 @@ So each SVG should be flattened to filled paths (convert strokes to outlines),
 monochrome, free of text elements (convert text to paths), and tightly cropped
 with an explicit `viewBox` so `scaledToFit` behaves predictably.
 
-Line art can stay as long as it is thick enough to survive. `cat.svg` is
+Line art can stay as long as it is thick enough to survive. `cat-outline.svg` is
 stroke-style art flattened to filled paths; at `padding: 4` its median feature
 is 6pt and only 6% of its strokes fall under 3pt. The rule exists to catch
 hairlines, not to ban thin work. Do set the fill or stroke colour explicitly,

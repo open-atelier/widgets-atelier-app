@@ -13,7 +13,19 @@ struct WidgetsAtelierBundle: WidgetBundle {
     var body: some Widget {
         CatCircular()
         CatCircularPlate()
+        HelloKittyFilledCircular()
+        HelloKittyFilledCircularPlate()
+        HelloKittyOutlineCircular()
+        HelloKittyOutlineCircularPlate()
+        KuromiFilledCircular()
+        KuromiFilledCircularPlate()
+        MyMelodyFilledCircular()
+        MyMelodyFilledCircularPlate()
+        MyMelodyOutlineCircular()
+        MyMelodyOutlineCircularPlate()
         SparkleCircular()
         SparkleCircularPlate()
+        SparklesFilledCircular()
+        SparklesFilledCircularPlate()
     }
 }

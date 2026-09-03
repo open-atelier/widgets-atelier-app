@@ -89,7 +89,7 @@ The largest corner-safe frame is **50.9pt**.
 
 So art that reaches its viewBox corners wants `padding: 11`. Art that is a
 centred round-ish shape with empty corners is fine at 6–8, because there is
-nothing out there to clip — which is why `cat` works at 4: its furthest drawn
+nothing out there to clip — which is why `cat-outline` works at 4: its furthest drawn
 point is 30.4pt from the slot centre, comfortably inside the 36pt radius.
 
 Measure rather than guess. Render the SVG at the frame size and check the
@@ -109,8 +109,8 @@ for the designs actually in the repo:
 
 | Design | viewBox | Padding | pt/unit | 3pt needs |
 | --- | --- | --- | --- | --- |
-| `cat` | 72×72 | 4 | 0.889 | 3.4 units (4.7% of short side) |
-| `sparkle` | 72×72 | 10 | 0.722 | 4.2 units (5.8%) |
+| `cat-outline` | 72×72 | 4 | 0.889 | 3.4 units (4.7% of short side) |
+| `sparkles-sharp-filled` | 72×72 | 10 | 0.722 | 4.2 units (5.8%) |
 
 **Rule of thumb: a feature narrower than ~5% of the viewBox's short side will
 probably vanish.** On a 72-unit viewBox that is 4 units. Strokes, gaps between
