@@ -16,6 +16,12 @@ export type Design = {
   name: string;
   /** Matches the SVG filename and the imageset name. */
   slug: string;
+  /**
+   * The widget kinds of the two variants, plain then plate, matching the
+   * designs in targets/widgets/Designs/. Kinds are permanent once shipped,
+   * so a renamed artwork (cat-outline) keeps its original kind (CatCircular).
+   */
+  kinds: [plain: string, plate: string];
   image: number;
   family: "circular" | "rectangular";
   /** Must match the AccessoryArt padding in the Swift design. */
@@ -33,6 +39,7 @@ export const DESIGNS: Design[] = [
   {
     name: "Cat outline",
     slug: "cat-outline",
+    kinds: ["CatCircular", "CatCircularPlate"],
     image: require("../assets/previews/cat-outline.png"),
     family: "circular",
     padding: 4,
@@ -42,6 +49,7 @@ export const DESIGNS: Design[] = [
   {
     name: "Hello Kitty filled",
     slug: "hello-kitty-filled",
+    kinds: ["HelloKittyFilledCircular", "HelloKittyFilledCircularPlate"],
     image: require("../assets/previews/hello-kitty-filled.png"),
     family: "circular",
     padding: 4,
@@ -51,6 +59,7 @@ export const DESIGNS: Design[] = [
   {
     name: "Hello Kitty outline",
     slug: "hello-kitty-outline",
+    kinds: ["HelloKittyOutlineCircular", "HelloKittyOutlineCircularPlate"],
     image: require("../assets/previews/hello-kitty-outline.png"),
     family: "circular",
     padding: 6,
@@ -60,6 +69,7 @@ export const DESIGNS: Design[] = [
   {
     name: "Kuromi",
     slug: "kuromi-filled",
+    kinds: ["KuromiFilledCircular", "KuromiFilledCircularPlate"],
     image: require("../assets/previews/kuromi-filled.png"),
     family: "circular",
     padding: 8,
@@ -69,6 +79,7 @@ export const DESIGNS: Design[] = [
   {
     name: "My Melody filled",
     slug: "my-melody-filled",
+    kinds: ["MyMelodyFilledCircular", "MyMelodyFilledCircularPlate"],
     image: require("../assets/previews/my-melody-filled.png"),
     family: "circular",
     padding: 10,
@@ -78,6 +89,7 @@ export const DESIGNS: Design[] = [
   {
     name: "My Melody outline",
     slug: "my-melody-outline",
+    kinds: ["MyMelodyOutlineCircular", "MyMelodyOutlineCircularPlate"],
     image: require("../assets/previews/my-melody-outline.png"),
     family: "circular",
     padding: 11,
@@ -87,6 +99,7 @@ export const DESIGNS: Design[] = [
   {
     name: "Sparkles",
     slug: "sparkles-filled",
+    kinds: ["SparklesFilledCircular", "SparklesFilledCircularPlate"],
     image: require("../assets/previews/sparkles-filled.png"),
     family: "circular",
     padding: 10,
@@ -96,6 +109,7 @@ export const DESIGNS: Design[] = [
   {
     name: "Sparkles sharp",
     slug: "sparkles-sharp-filled",
+    kinds: ["SparkleCircular", "SparkleCircularPlate"],
     image: require("../assets/previews/sparkles-sharp-filled.png"),
     family: "circular",
     padding: 10,

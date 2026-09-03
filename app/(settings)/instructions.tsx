@@ -1,5 +1,7 @@
 import { FieldGroup, Host, Icon, List, ListItem, Text } from "@expo/ui";
 
+import { usePlacedWidgets } from "@/components/use-placed-widgets";
+
 const STEPS = [
   {
     symbol: "1.circle.fill",
@@ -24,6 +26,15 @@ const STEPS = [
 ] as const;
 
 export default function Instructions() {
+  const placed = usePlacedWidgets();
+  const count = placed?.size ?? 0;
+  const footer =
+    count === 0
+      ? "Widgets are added from the Lock Screen itself, not from this app."
+      : count === 1
+        ? "You have 1 widget on your Lock Screen. Repeat the steps to add more."
+        : `You have ${count} widgets on your Lock Screen. Repeat the steps to add more.`;
+
   return (
     <Host style={{ flex: 1 }}>
       <FieldGroup>
@@ -43,9 +54,7 @@ export default function Instructions() {
             ))}
           </List>
           <FieldGroup.SectionFooter>
-            <Text>
-              Widgets are added from the Lock Screen itself, not from this app.
-            </Text>
+            <Text>{footer}</Text>
           </FieldGroup.SectionFooter>
         </FieldGroup.Section>
       </FieldGroup>

@@ -4,6 +4,7 @@ import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { useDesignSearch } from "@/components/use-design-search";
 import { useHeaderSearch } from "@/components/use-header-search";
+import { usePlacedWidgets } from "@/components/use-placed-widgets";
 import { VariantRow } from "@/components/variant-row";
 
 function NoResults({ query }: { query: string }) {
@@ -25,6 +26,7 @@ function NoResults({ query }: { query: string }) {
 export default function Gallery() {
   const query = useHeaderSearch("Search illustrations");
   const designs = useDesignSearch(query);
+  const placedKinds = usePlacedWidgets();
 
   return (
     <ScrollView
@@ -38,7 +40,11 @@ export default function Gallery() {
       ) : (
         <>
           {designs.map((design) => (
-            <VariantRow key={design.slug} design={design} />
+            <VariantRow
+              key={design.slug}
+              design={design}
+              placedKinds={placedKinds}
+            />
           ))}
           <Text style={styles.footnote}>
             Shown at actual size. Every illustration is offered both ways in the

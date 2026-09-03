@@ -1,4 +1,5 @@
 import { Color } from "expo-router";
+import { SymbolView } from "expo-symbols";
 import { Image, StyleSheet, Text, View } from "react-native";
 
 import { SLOT, type Design } from "./designs";
@@ -12,7 +13,15 @@ import { SLOT, type Design } from "./designs";
  * Image component, and this needs exact accessory geometry. The chrome uses
  * iOS semantic colours so it still tracks the system appearance.
  */
-function Slot({ design, plate }: { design: Design; plate: boolean }) {
+function Slot({
+  design,
+  plate,
+  placed,
+}: {
+  design: Design;
+  plate: boolean;
+  placed: boolean;
+}) {
   const isCircular = design.family === "circular";
   const width = isCircular ? SLOT.circularDiameter : SLOT.rectangularWidth;
 
@@ -37,12 +46,32 @@ function Slot({ design, plate }: { design: Design; plate: boolean }) {
           resizeMode="contain"
         />
       </View>
-      <Text style={styles.variantLabel}>{plate ? "Plate" : "Plain"}</Text>
+      <View style={styles.variantLabelRow}>
+        {placed && (
+          <SymbolView
+            name="checkmark.circle.fill"
+            size={12}
+            tintColor="rgba(235,235,245,0.6)"
+          />
+        )}
+        <Text style={styles.variantLabel}>
+          {plate ? "Plate" : "Plain"}
+          {placed ? " · placed" : ""}
+        </Text>
+      </View>
     </View>
   );
 }
 
-export function VariantRow({ design }: { design: Design }) {
+export function VariantRow({
+  design,
+  placedKinds,
+}: {
+  design: Design;
+  /** Widget kinds the user has placed; null while unknown. */
+  placedKinds: Set<string> | null;
+}) {
+  const [plainKind, plateKind] = design.kinds;
   return (
     <View style={styles.card}>
       <View style={styles.header}>
@@ -53,8 +82,12 @@ export function VariantRow({ design }: { design: Design }) {
           the vibrant material it becomes on device, so it needs a dark surface
           behind it to be visible at all -- including in light mode. */}
       <View style={styles.wallpaper}>
-        <Slot design={design} plate={false} />
-        <Slot design={design} plate />
+        <Slot
+          design={design}
+          plate={false}
+          placed={placedKinds?.has(plainKind) ?? false}
+        />
+        <Slot design={design} plate placed={placedKinds?.has(plateKind) ?? false} />
       </View>
     </View>
   );
@@ -81,5 +114,6 @@ const styles = StyleSheet.create({
   slot: { alignItems: "center", gap: 8 },
   canvas: { overflow: "hidden" },
   art: { flex: 1, width: undefined, height: undefined },
+  variantLabelRow: { flexDirection: "row", alignItems: "center", gap: 4 },
   variantLabel: { color: "rgba(235,235,245,0.6)", fontSize: 12 },
 });

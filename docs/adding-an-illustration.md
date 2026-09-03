@@ -286,6 +286,12 @@ rows.
 Nothing enforces that the two stay in step. If the gallery is missing a design,
 this is why.
 
+Each entry also lists its two widget `kinds` (plain, then plate), which must
+match the Swift designs exactly -- the app uses them to show which variants the
+user has already placed, via the `placed-widgets` local module wrapping
+`WidgetCenter.getCurrentConfigurations`. A typo here does not error; the
+"placed" badge just never appears for that design.
+
 Give each entry a few `keywords` while you are there. The gallery search is
 fuzzy (Fuse.js), and name plus description alone is a thin target — someone
 hunting for the sparkle is as likely to type "star" or "glitter".
