@@ -8,7 +8,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { useColorScheme } from "react-native";
+import { Appearance, useColorScheme } from "react-native";
 
 export type ThemePreference = "system" | "light" | "dark";
 
@@ -57,6 +57,18 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       cancelled = true;
     };
   }, []);
+
+  // Push the choice down to native. Most of the app does not read `scheme`
+  // at all: `Color.ios.*` is PlatformColor and the @expo/ui screens are
+  // SwiftUI, and both resolve against the window's trait collection, not
+  // against React state. Without this only the navigation chrome and status
+  // bar flipped, so picking Light on a dark phone gave a light header over a
+  // dark, white-on-white body. setColorScheme sets overrideUserInterfaceStyle
+  // on every window; "unspecified" hands control back to the system.
+  useEffect(() => {
+    if (!ready) return;
+    Appearance.setColorScheme(preference === "system" ? "unspecified" : preference);
+  }, [preference, ready]);
 
   const setPreference = useCallback((next: ThemePreference) => {
     // Apply immediately, persist in the background. The write is not worth
