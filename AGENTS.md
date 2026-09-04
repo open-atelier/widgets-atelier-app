@@ -119,6 +119,29 @@ shapes, and negative space all count.
 The circular slot is the harder constraint — smaller and clipped — so design
 for it first and adapt outward.
 
+## Centre optically, not by viewBox
+
+`scaledToFit` centres the viewBox, not the ink. Most downloaded SVGs have the
+art sitting off-centre inside their viewBox (both Hello Kittys arrived almost
+4pt high), and even a centred bounding box reads wrong when the visual weight
+is lopsided — a big hood pulls a face up, a bow pulls it sideways. The plate
+makes this obvious because the circle is a reference edge.
+
+The rule this repo uses: the **midpoint of the bounding-box centre and the
+alpha-weighted ink centroid** goes on the slot centre. Bounding box alone
+ignores weight; centroid alone over-corrects asymmetric art.
+
+```sh
+python3 tools/measure-artwork.py        # report bbox, centroid, optical offset and reach
+python3 tools/measure-artwork.py --fix  # shift viewBox origins so the optical offset is 0
+bun run artwork                         # regenerate PDFs and previews
+```
+
+The fix moves only the viewBox *origin*, so size, padding and detail weight
+are untouched, and the gallery PNGs follow automatically. It lives in the SVG
+because centring is a property of the artwork, not of one widget variant.
+Anything under 0.5pt is left alone. Final sign-off is still by eye on device.
+
 ## If the source is a bitmap rather than an SVG
 
 Avoid it, but at 3x: circular **216×216**, rectangular **480×216**. Those are

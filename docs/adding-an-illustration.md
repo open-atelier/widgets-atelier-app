@@ -157,6 +157,23 @@ is the first value whose frame corners (35.4pt) stay inside the 36pt radius —
 
 AGENTS.md has the full table, plus the minimum detail thresholds.
 
+### Centring
+
+`scaledToFit` centres the viewBox, and the ink is rarely centred inside it.
+Run the measurement tool after dropping an SVG in:
+
+```sh
+python3 tools/measure-artwork.py        # where the art sits, in points from the slot centre
+python3 tools/measure-artwork.py --fix  # recentre by shifting each viewBox origin
+bun run artwork
+```
+
+It reads each design's padding from `components/designs.ts`, so add the
+`DESIGNS` entry first. `--fix` puts the midpoint of the bounding-box centre and
+the ink centroid on the slot centre — optical centring, not geometric — and
+reports the furthest opaque pixel so you can see it stays inside the 36pt
+radius. AGENTS.md, "Centre optically", explains the rule.
+
 ## 4. Register it
 
 Add **both** variants to `targets/widgets/WidgetsAtelierBundle.swift`:
